@@ -33,3 +33,11 @@ Command line program example.
 ## References
 
 - [Mocking HTTP Responses in Golang](http://keighl.com/post/mocking-http-responses-in-golang/)
+
+## Licence
+
+The MIT License (MIT)
+
+Copyright (c) 2015 Scott Barr
+
+See [LICENSE.md](LICENSE.md)
