@@ -18,6 +18,9 @@ const URL string = "http://download.finance.yahoo.com/d/quotes.csv"
 type Quote struct {
 	Symbol        string
 	Name          string
+	Close         float64
+	Change        float64
+	ChangePct     float64
 	LastTrade     float64
 	LastTradeDate string
 	LastTradeTime string
@@ -107,7 +110,7 @@ func formatSymbols(symbols []string) string {
 func buildParameters(symbols []string) url.Values {
 	return url.Values{
 		"s": {formatSymbols(symbols)},
-		"f": {"snl1d1t1"},
+		"f": {"snl1d1t1c1p2"},
 	}
 }
 
@@ -120,6 +123,10 @@ func buildQuote(data []string) Quote {
 	q.LastTrade, _ = strconv.ParseFloat(data[2], 64)
 	q.LastTradeDate = data[3]
 	q.LastTradeTime = data[4]
+	q.Change, _ = strconv.ParseFloat(data[5], 64)
+
+	pct := strings.Replace(data[6], "%", "", 1)
+	q.ChangePct, _ = strconv.ParseFloat(pct, 64)
 
 	return q
 }

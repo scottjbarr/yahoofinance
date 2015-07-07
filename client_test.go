@@ -41,7 +41,7 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 }
 
 func TestGetData(t *testing.T) {
-	body := `"GE","General Electric Company Common",24.91,"3/25/2015","4:00pm"`
+	body := `"GE","General Electric Company Common",26.03,"6/30/2015","10:43am",-0.28,"-1.06%"`
 	server, client := httpMock(200, body)
 	defer server.Close()
 
@@ -53,9 +53,11 @@ func TestGetData(t *testing.T) {
 	expected[0] = Quote{
 		Symbol:        "GE",
 		Name:          "General Electric Company Common",
-		LastTrade:     24.91,
-		LastTradeDate: "3/25/2015",
-		LastTradeTime: "4:00pm",
+		LastTrade:     26.03,
+		LastTradeDate: "6/30/2015",
+		LastTradeTime: "10:43am",
+		Change:        -0.28,
+		ChangePct:     -1.06,
 	}
 
 	expect(t, 1, len(quotes))
@@ -64,32 +66,36 @@ func TestGetData(t *testing.T) {
 
 func TestGetDataMultipleSymbols(t *testing.T) {
 	quoteStrings := make([]string, 2)
-	quoteStrings[0] = `"ACME","ACME Company",20.15,"3/25/2015","4:00pm"`
-	quoteStrings[1] = `"HHGTTG","Towel Company",42.01,"3/26/2015","10:12am"`
+	quoteStrings[0] = `"GE","General Electric Company Common",26.025,"6/30/2015","10:44am",-0.285,"-1.083%"`
+	quoteStrings[1] = `"HHGTTG","Towel Company",124.42,"6/30/2015","10:45am",-1.58,"-1.25%"`
 	body := strings.Join(quoteStrings, "\n")
 
 	server, client := httpMock(200, body)
 	defer server.Close()
 
-	symbols := []string{"GE", "FOO"}
+	symbols := []string{"GE", "HHGTTG"}
 	quotes := client.GetQuotes(symbols)
 
 	expected := make([]Quote, 2)
 
 	expected[0] = Quote{
-		Symbol:        "ACME",
-		Name:          "ACME Company",
-		LastTrade:     20.15,
-		LastTradeDate: "3/25/2015",
-		LastTradeTime: "4:00pm",
+		Symbol:        "GE",
+		Name:          "General Electric Company Common",
+		LastTrade:     26.025,
+		LastTradeDate: "6/30/2015",
+		LastTradeTime: "10:44am",
+		Change:        -0.285,
+		ChangePct:     -1.083,
 	}
 
 	expected[1] = Quote{
 		Symbol:        "HHGTTG",
 		Name:          "Towel Company",
-		LastTrade:     42.01,
-		LastTradeDate: "3/26/2015",
-		LastTradeTime: "10:12am",
+		LastTrade:     124.42,
+		LastTradeDate: "6/30/2015",
+		LastTradeTime: "10:45am",
+		Change:        -1.58,
+		ChangePct:     -1.25,
 	}
 
 	expect(t, 2, len(quotes))
