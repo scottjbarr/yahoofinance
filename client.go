@@ -14,16 +14,19 @@ import (
 // URL of the remote service
 const URL string = "http://download.finance.yahoo.com/d/quotes.csv"
 
-// Minimal Quote data
+// Quote data
 type Quote struct {
-	Symbol        string
-	Name          string
-	Close         float64
-	Change        float64
-	ChangePct     float64
-	LastTrade     float64
-	LastTradeDate string
-	LastTradeTime string
+	Symbol        string  `json:"symbol"`
+	Name          string  `json:"name"`
+	PreviousClose float64 `json:"previous_close"`
+	Open          float64 `json:"open"`
+	Price         float64 `json:"price"`
+	Change        float64 `json:"change"`
+	ChangePct     float64 `json:"change_pct"`
+	DayLow        float64 `json:"day_low"`
+	DayHigh       float64 `json:"day_high"`
+	LastTradeDate string  `json:"last_trade_date"`
+	LastTradeTime string  `json:"last_trade_time"`
 }
 
 // Client to the remote service
@@ -110,8 +113,23 @@ func formatSymbols(symbols []string) string {
 func buildParameters(symbols []string) url.Values {
 	return url.Values{
 		"s": {formatSymbols(symbols)},
-		"f": {"snl1d1t1c1p2"},
+		"f": {"snpol1c1p2ghd1t1"},
 	}
+}
+
+// Parse a float64 from the value, or return zero
+func parseFloat(value string) float64 {
+	if value == "N/A" {
+		return 0
+	}
+
+	f, err := strconv.ParseFloat(strings.Replace(value, "%", "", 1), 64)
+
+	if err != nil {
+		return 0
+	}
+
+	return f
 }
 
 // Build a Quote
@@ -120,13 +138,17 @@ func buildQuote(data []string) Quote {
 
 	q.Symbol = data[0]
 	q.Name = data[1]
-	q.LastTrade, _ = strconv.ParseFloat(data[2], 64)
-	q.LastTradeDate = data[3]
-	q.LastTradeTime = data[4]
-	q.Change, _ = strconv.ParseFloat(data[5], 64)
 
-	pct := strings.Replace(data[6], "%", "", 1)
-	q.ChangePct, _ = strconv.ParseFloat(pct, 64)
+	q.PreviousClose = parseFloat(data[2])
+	q.Open = parseFloat(data[3])
+	q.Price = parseFloat(data[4])
+	q.Change = parseFloat(data[5])
+	q.ChangePct = parseFloat(data[6])
+	q.DayLow = parseFloat(data[7])
+	q.DayHigh = parseFloat(data[8])
+
+	q.LastTradeDate = data[9]
+	q.LastTradeTime = data[10]
 
 	return q
 }

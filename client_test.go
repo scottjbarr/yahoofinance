@@ -41,7 +41,8 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 }
 
 func TestGetData(t *testing.T) {
-	body := `"GE","General Electric Company Common",26.03,"6/30/2015","10:43am",-0.28,"-1.06%"`
+	body := `"GE","General Electric Company Common",26.47,26.10,26.02,-0.45,"-1.70%",26.00,26.24,"7/8/2015","10:06am"`
+
 	server, client := httpMock(200, body)
 	defer server.Close()
 
@@ -53,11 +54,15 @@ func TestGetData(t *testing.T) {
 	expected[0] = Quote{
 		Symbol:        "GE",
 		Name:          "General Electric Company Common",
-		LastTrade:     26.03,
-		LastTradeDate: "6/30/2015",
-		LastTradeTime: "10:43am",
-		Change:        -0.28,
-		ChangePct:     -1.06,
+		PreviousClose: 26.47,
+		Open:          26.10,
+		Price:         26.02,
+		Change:        -0.45,
+		ChangePct:     -1.70,
+		DayLow:        26.0,
+		DayHigh:       26.24,
+		LastTradeDate: "7/8/2015",
+		LastTradeTime: "10:06am",
 	}
 
 	expect(t, 1, len(quotes))
@@ -66,8 +71,9 @@ func TestGetData(t *testing.T) {
 
 func TestGetDataMultipleSymbols(t *testing.T) {
 	quoteStrings := make([]string, 2)
-	quoteStrings[0] = `"GE","General Electric Company Common",26.025,"6/30/2015","10:44am",-0.285,"-1.083%"`
-	quoteStrings[1] = `"HHGTTG","Towel Company",124.42,"6/30/2015","10:45am",-1.58,"-1.25%"`
+	quoteStrings[0] = `"GE","General Electric Company Common",26.47,26.10,26.02,-0.45,"-1.70%",26.00,26.24,"7/8/2015","10:06am"`
+	quoteStrings[1] = `"HHGTTG","Towel Company",125.69,124.48,123.49,-2.20,"-1.75%",123.22,124.64,"7/8/2015","10:06am"`
+
 	body := strings.Join(quoteStrings, "\n")
 
 	server, client := httpMock(200, body)
@@ -81,21 +87,29 @@ func TestGetDataMultipleSymbols(t *testing.T) {
 	expected[0] = Quote{
 		Symbol:        "GE",
 		Name:          "General Electric Company Common",
-		LastTrade:     26.025,
-		LastTradeDate: "6/30/2015",
-		LastTradeTime: "10:44am",
-		Change:        -0.285,
-		ChangePct:     -1.083,
+		PreviousClose: 26.47,
+		Open:          26.10,
+		Price:         26.02,
+		Change:        -0.45,
+		ChangePct:     -1.70,
+		DayLow:        26.0,
+		DayHigh:       26.24,
+		LastTradeDate: "7/8/2015",
+		LastTradeTime: "10:06am",
 	}
 
 	expected[1] = Quote{
 		Symbol:        "HHGTTG",
 		Name:          "Towel Company",
-		LastTrade:     124.42,
-		LastTradeDate: "6/30/2015",
-		LastTradeTime: "10:45am",
-		Change:        -1.58,
-		ChangePct:     -1.25,
+		PreviousClose: 125.69,
+		Open:          124.48,
+		Price:         123.49,
+		Change:        -2.20,
+		ChangePct:     -1.75,
+		DayLow:        123.22,
+		DayHigh:       124.64,
+		LastTradeDate: "7/8/2015",
+		LastTradeTime: "10:06am",
 	}
 
 	expect(t, 2, len(quotes))
