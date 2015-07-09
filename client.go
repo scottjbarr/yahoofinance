@@ -55,9 +55,13 @@ func CreateClient() *Client {
 }
 
 // Return Quotes from the service
-func (client *Client) GetQuotes(symbols []string) []Quote {
+func (client *Client) GetQuotes(symbols []string) ([]Quote, error) {
 	// get the body from the HTTP service
-	body := client.getData(symbols)
+	body, err := client.getData(symbols)
+
+	if err != nil {
+		return nil, err
+	}
 
 	// get the csv data
 	rows := parseCsv(body)
@@ -70,7 +74,7 @@ func (client *Client) GetQuotes(symbols []string) []Quote {
 		quotes[i] = buildQuote(row)
 	}
 
-	return quotes
+	return quotes, nil
 }
 
 // Build the URL string.
@@ -82,7 +86,7 @@ func (client *Client) buildRequestUrl(symbols []string) string {
 }
 
 // Make the HTTP request to Yahoo.
-func (client *Client) getData(symbols []string) string {
+func (client *Client) getData(symbols []string) (string, error) {
 	// get the full url
 	request_url := client.buildRequestUrl(symbols)
 
@@ -90,7 +94,7 @@ func (client *Client) getData(symbols []string) string {
 	response, err := client.HTTPClient.Get(request_url)
 
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	defer response.Body.Close()
@@ -99,10 +103,10 @@ func (client *Client) getData(symbols []string) string {
 	body_byte, err := ioutil.ReadAll(response.Body)
 
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(body_byte)
+	return string(body_byte), nil
 }
 
 // Format the symbols suitable for the URL
