@@ -27,6 +27,7 @@ type Quote struct {
 	DayHigh       float64 `json:"day_high"`
 	LastTradeDate string  `json:"last_trade_date"`
 	LastTradeTime string  `json:"last_trade_time"`
+	LastTrade     float64 `json:"last_trade"`
 }
 
 // Client to the remote service
@@ -113,7 +114,7 @@ func formatSymbols(symbols []string) string {
 func buildParameters(symbols []string) url.Values {
 	return url.Values{
 		"s": {formatSymbols(symbols)},
-		"f": {"snpol1c1p2ghd1t1"},
+		"f": {"snpol1c1p2ghd1t1l1"},
 	}
 }
 
@@ -149,6 +150,7 @@ func buildQuote(data []string) Quote {
 
 	q.LastTradeDate = data[9]
 	q.LastTradeTime = data[10]
+	q.LastTrade = parseFloat(data[11])
 
 	return q
 }

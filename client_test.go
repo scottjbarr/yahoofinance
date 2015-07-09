@@ -41,13 +41,13 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 }
 
 func TestGetData(t *testing.T) {
-	body := `"GE","General Electric Company Common",26.47,26.10,26.02,-0.45,"-1.70%",26.00,26.24,"7/8/2015","10:06am"`
+	body := `"GE","General Electric Company Common",26.47,26.10,26.02,-0.45,"-1.70%",26.00,26.24,"7/8/2015","10:06am",26.02`
 
 	server, client := httpMock(200, body)
 	defer server.Close()
 
 	symbols := []string{"GE"}
-	quotes := client.GetQuotes(symbols)
+	quotes, _ := client.GetQuotes(symbols)
 
 	expected := make([]Quote, 1)
 
@@ -63,6 +63,7 @@ func TestGetData(t *testing.T) {
 		DayHigh:       26.24,
 		LastTradeDate: "7/8/2015",
 		LastTradeTime: "10:06am",
+		LastTrade:     26.02,
 	}
 
 	expect(t, 1, len(quotes))
@@ -71,8 +72,8 @@ func TestGetData(t *testing.T) {
 
 func TestGetDataMultipleSymbols(t *testing.T) {
 	quoteStrings := make([]string, 2)
-	quoteStrings[0] = `"GE","General Electric Company Common",26.47,26.10,26.02,-0.45,"-1.70%",26.00,26.24,"7/8/2015","10:06am"`
-	quoteStrings[1] = `"HHGTTG","Towel Company",125.69,124.48,123.49,-2.20,"-1.75%",123.22,124.64,"7/8/2015","10:06am"`
+	quoteStrings[0] = `"GE","General Electric Company Common",26.47,26.10,26.02,-0.45,"-1.70%",26.00,26.24,"7/8/2015","10:06am",26.02`
+	quoteStrings[1] = `"HHGTTG","Towel Company",125.69,124.48,123.49,-2.20,"-1.75%",123.22,124.64,"7/8/2015","10:06am",123.51`
 
 	body := strings.Join(quoteStrings, "\n")
 
@@ -80,7 +81,7 @@ func TestGetDataMultipleSymbols(t *testing.T) {
 	defer server.Close()
 
 	symbols := []string{"GE", "HHGTTG"}
-	quotes := client.GetQuotes(symbols)
+	quotes, _ := client.GetQuotes(symbols)
 
 	expected := make([]Quote, 2)
 
@@ -96,6 +97,7 @@ func TestGetDataMultipleSymbols(t *testing.T) {
 		DayHigh:       26.24,
 		LastTradeDate: "7/8/2015",
 		LastTradeTime: "10:06am",
+		LastTrade:     26.02,
 	}
 
 	expected[1] = Quote{
@@ -110,6 +112,7 @@ func TestGetDataMultipleSymbols(t *testing.T) {
 		DayHigh:       124.64,
 		LastTradeDate: "7/8/2015",
 		LastTradeTime: "10:06am",
+		LastTrade:     123.51,
 	}
 
 	expect(t, 2, len(quotes))
