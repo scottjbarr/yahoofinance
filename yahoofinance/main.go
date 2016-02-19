@@ -24,8 +24,11 @@ func main() {
 	sort.Strings(symbols)
 
 	client := yahoofinance.CreateClient()
-	// quotes := yahoofinance.GetQuotes(symbols)
-	quotes := client.GetQuotes(symbols)
+	quotes, err := client.GetQuotes(symbols)
+
+	if err != nil {
+		fmt.Println("%+v\n", err)
+	}
 
 	for _, quote := range quotes {
 		fmt.Println(quote)
