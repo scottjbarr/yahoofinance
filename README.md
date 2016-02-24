@@ -28,7 +28,7 @@ Command line program example.
 
 ... or alternatively
 
-    goconvery
+    goconvey
 
 ## References
 
