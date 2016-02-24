@@ -6,7 +6,7 @@ There is also a command line program that uses the library
 
 ## Build
 
-    go install github.com/scottjbarr/yahoofinance/cmd/yahoofinance
+    go get github.com/scottjbarr/yahoofinance/cmd/yahoofinance
 
 ## Usage
 
