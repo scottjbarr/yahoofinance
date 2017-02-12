@@ -1,4 +1,5 @@
-// Fetch quotes for equities and currencies from Yahoo Finance.
+// Package yahoofinance provides a way to fetch quotes for equities and
+// currencies from Yahoo Finance.
 package yahoofinance
 
 import (
@@ -11,8 +12,8 @@ import (
 	"time"
 )
 
-// URL of the remote service
-const URL string = "http://download.finance.yahoo.com/d/quotes.csv"
+// quoteURL of the remote service
+const quotesURL string = "http://download.finance.yahoo.com/d/quotes.csv"
 
 // Quote data
 type Quote struct {
@@ -30,41 +31,38 @@ type Quote struct {
 	LastTrade     float64 `json:"last_trade"`
 }
 
-// Client to the remote service
+// Client provides access to the Quotes service.
 type Client struct {
-	// Base URL
-	BaseURL string
-
-	// Requests are transported through this client
+	BaseURL    string
 	HTTPClient *http.Client
 }
 
-// Create a Client with reasonable defaults
-func CreateClient() *Client {
-	// set the request timeout
-	timeout := time.Duration(5 * time.Second)
-
-	client := http.Client{
-		Timeout: timeout,
-	}
-
+// NewClient returns a new default Client
+func NewClient() *Client {
 	return &Client{
-		BaseURL:    URL,
-		HTTPClient: &client,
+		BaseURL:    quotesURL,
+		HTTPClient: defaultHTTPClient(),
 	}
 }
 
-// Return Quotes from the service
+// defaultHTTPClient returns http.Client with reasonable defaults
+func defaultHTTPClient() *http.Client {
+	return &http.Client{
+		Timeout: time.Duration(2 * time.Second),
+	}
+}
+
+// GetQuotes return Quotes for the given symbols
 func (client *Client) GetQuotes(symbols []string) ([]Quote, error) {
 	// get the body from the HTTP service
-	body, err := client.getData(symbols)
+	body, err := client.get(symbols)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// get the csv data
-	rows := parseCsv(body)
+	rows := parseCSV(body)
 
 	// create a slice to hold each Quote
 	quotes := make([]Quote, len(symbols))
@@ -77,21 +75,22 @@ func (client *Client) GetQuotes(symbols []string) ([]Quote, error) {
 	return quotes, nil
 }
 
-// Build the URL string.
-func (client *Client) buildRequestUrl(symbols []string) string {
-	parse_request_url, _ := url.Parse(client.BaseURL)
-	parse_request_url.RawQuery = buildParameters(symbols).Encode()
+// buildURL returns a url that can be used to request quotes for the
+// given symbols.
+func (client *Client) buildURL(symbols []string) string {
+	u, _ := url.Parse(client.BaseURL)
+	u.RawQuery = buildParameters(symbols).Encode()
 
-	return parse_request_url.String()
+	return u.String()
 }
 
-// Make the HTTP request to Yahoo.
-func (client *Client) getData(symbols []string) (string, error) {
+// get makes the HTTP request to the service.
+func (client *Client) get(symbols []string) (string, error) {
 	// get the full url
-	request_url := client.buildRequestUrl(symbols)
+	url := client.buildURL(symbols)
 
-	/// get the HTTP response
-	response, err := client.HTTPClient.Get(request_url)
+	// get the HTTP response
+	response, err := client.HTTPClient.Get(url)
 
 	if err != nil {
 		return "", err
@@ -100,20 +99,22 @@ func (client *Client) getData(symbols []string) (string, error) {
 	defer response.Body.Close()
 
 	// read the body
-	body_byte, err := ioutil.ReadAll(response.Body)
+	body, err := ioutil.ReadAll(response.Body)
 
 	if err != nil {
 		return "", err
 	}
 
-	return string(body_byte), nil
+	return string(body), nil
 }
 
-// Format the symbols suitable for the URL
+// formatSymbols returns symbols formatted for the query.
 func formatSymbols(symbols []string) string {
 	return strings.Join(symbols, "+")
 }
 
+// buildParamaters consttucts parameters for the service.
+//
 // See Yahoo-data.htm for format details.
 func buildParameters(symbols []string) url.Values {
 	return url.Values{
@@ -122,7 +123,8 @@ func buildParameters(symbols []string) url.Values {
 	}
 }
 
-// Parse a float64 from the value, or return zero
+// parseFloat returns a float64 from the value, handling "%" characters. If
+// a value cannot be extract zero is returned.
 func parseFloat(value string) float64 {
 	if value == "N/A" {
 		return 0
@@ -137,7 +139,7 @@ func parseFloat(value string) float64 {
 	return f
 }
 
-// Build a Quote
+// buildQuote returns a quote from the array of data
 func buildQuote(data []string) Quote {
 	q := Quote{}
 
@@ -159,13 +161,10 @@ func buildQuote(data []string) Quote {
 	return q
 }
 
-// Parse the CSV data from the response.
-func parseCsv(body string) [][]string {
+// parseCSV extracts data from the csv body
+func parseCSV(body string) [][]string {
 	reader := strings.NewReader(body)
 	csv := csv.NewReader(reader)
-
-	// fx.Comma = '|'
-	// fx.FieldsPerRecord = 16
 	csv.LazyQuotes = true
 
 	data, _ := csv.ReadAll()

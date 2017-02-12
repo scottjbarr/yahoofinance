@@ -4,9 +4,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/scottjbarr/yahoofinance"
 	"os"
 	"sort"
+
+	"github.com/scottjbarr/yahoofinance"
 )
 
 func usage() {
@@ -23,7 +24,7 @@ func main() {
 	symbols := os.Args[1:len(os.Args)]
 	sort.Strings(symbols)
 
-	client := yahoofinance.CreateClient()
+	client := yahoofinance.NewClient()
 	quotes, err := client.GetQuotes(symbols)
 
 	if err != nil {
